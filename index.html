@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pacific Design Sheets</title>
+<meta name="description" content="Live Excel structural design sheets to AS/NZS: wind loads, RC and steel beams and columns, and every common footing type.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@500;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Layout idea: each product is a drawing-sheet title block; the hero is a live eccentric-footing pressure diagram. */
+:root{
+  --paper:#f3f4f1;
+  --sheet:#ffffff;
+  --ink:#172026;
+  --muted:#5b666d;
+  --rule:#cfd4d2;
+  --accent:#1d4ed8;
+  --accent-soft:#e3e9fb;
+  --pass:#1f7a4d;
+  --warn:#b4570b;
+  --font-display:"Archivo Narrow","Arial Narrow",system-ui,sans-serif;
+  --font-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#11171b;--sheet:#182127;--ink:#e6ebee;--muted:#9aa6ad;--rule:#2c3940;
+    --accent:#7aa2ff;--accent-soft:#1d2a46;--pass:#4fbf86;--warn:#f0a35e;color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#11171b;--sheet:#182127;--ink:#e6ebee;--muted:#9aa6ad;--rule:#2c3940;
+  --accent:#7aa2ff;--accent-soft:#1d2a46;--pass:#4fbf86;--warn:#f0a35e;color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  background:var(--paper);
+  background-image:linear-gradient(var(--rule) 1px,transparent 1px),linear-gradient(90deg,var(--rule) 1px,transparent 1px);
+  background-size:32px 32px;background-position:-1px -1px;
+  color:var(--ink);font-family:var(--font-body);font-size:16px;line-height:1.55;
+}
+body::before{content:"";position:fixed;inset:0;background:var(--paper);opacity:.86;pointer-events:none;z-index:-1}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.wrap{max-width:1120px;margin:0 auto;padding:0 20px}
+h1,h2,h3{font-family:var(--font-display);text-wrap:balance;margin:0;letter-spacing:.01em}
+.mono{font-family:var(--font-mono)}
+.label{font-family:var(--font-mono);font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+
+/* header */
+header.top{border-bottom:1px solid var(--rule);background:var(--sheet)}
+header.top .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-top:14px;padding-bottom:14px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--font-display);font-weight:700;font-size:22px;text-decoration:none;color:var(--ink)}
+.brand svg{flex:none}
+nav.top{display:flex;gap:18px;flex-wrap:wrap}
+nav.top a{text-decoration:none;color:var(--muted);font-size:14px}
+nav.top a:hover{color:var(--ink)}
+
+/* hero */
+.hero{display:grid;grid-template-columns:1.05fr 1fr;gap:40px;align-items:center;padding:48px 0 40px}
+.hero h1{font-size:clamp(36px,5.4vw,60px);line-height:1.02;font-weight:700}
+.hero h1 em{font-style:normal;color:var(--accent)}
+.hero p.lead{max-width:56ch;color:var(--muted);font-size:18px;margin:18px 0 22px}
+.cta{display:flex;gap:12px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:4px;padding:11px 18px;font-weight:600;font-size:15px;text-decoration:none;border:1px solid var(--ink);cursor:pointer;font-family:var(--font-body);background:var(--ink);color:var(--paper)}
+.btn.ghost{background:transparent;color:var(--ink)}
+.btn:hover{filter:brightness(1.12)}
+.stats{display:flex;gap:28px;margin-top:26px;flex-wrap:wrap}
+.stats div{display:flex;flex-direction:column}
+.stats b{font-family:var(--font-display);font-size:28px;font-variant-numeric:tabular-nums}
+
+.demo{background:var(--sheet);border:1.5px solid var(--ink);border-radius:2px}
+.demo-head{display:flex;justify-content:space-between;border-bottom:1px solid var(--ink);padding:8px 12px;gap:8px;flex-wrap:wrap}
+.demo svg{display:block;width:100%;height:auto}
+.demo-controls{border-top:1px solid var(--rule);padding:12px;display:grid;gap:10px}
+.demo-controls label{display:flex;justify-content:space-between;font-size:14px}
+.demo-controls input[type=range]{width:100%;accent-color:var(--accent)}
+.readout{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--ink)}
+.readout div{padding:8px 12px;border-right:1px solid var(--rule)}
+.readout div:last-child{border-right:0}
+.readout b{display:block;font-family:var(--font-mono);font-size:17px;font-variant-numeric:tabular-nums}
+.chip{display:inline-block;font-family:var(--font-mono);font-size:12px;padding:2px 8px;border-radius:999px;border:1px solid currentColor}
+.chip.ok{color:var(--pass)}
+.chip.warn{color:var(--warn)}
+
+/* sections */
+section{padding:44px 0}
+.sec-head{display:flex;justify-content:space-between;align-items:end;gap:20px;flex-wrap:wrap;margin-bottom:22px;border-bottom:1.5px solid var(--ink);padding-bottom:10px}
+.sec-head h2{font-size:34px}
+.sec-head p{margin:0;color:var(--muted);max-width:60ch}
+
+.features{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border:1px solid var(--rule);background:var(--sheet)}
+.features div{padding:18px;border-right:1px solid var(--rule);border-bottom:1px solid var(--rule)}
+.features div:nth-child(3n){border-right:0}
+.features h3{font-size:19px;margin-bottom:4px}
+.features p{margin:0;color:var(--muted);font-size:15px}
+.swatch{display:inline-block;width:12px;height:12px;border:1px solid var(--ink);vertical-align:-1px;margin-right:6px}
+
+/* filters */
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.filters button{font-family:var(--font-mono);font-size:13px;border:1px solid var(--rule);background:var(--sheet);color:var(--ink);padding:6px 12px;border-radius:999px;cursor:pointer}
+.filters button[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+
+/* title-block cards */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:18px}
+.card{background:var(--sheet);border:1.5px solid var(--ink);display:flex;flex-direction:column}
+.card .tb{display:grid;grid-template-columns:1fr auto;border-bottom:1px solid var(--ink)}
+.card .tb > div{padding:6px 10px}
+.card .tb .no{border-left:1px solid var(--ink);text-align:right}
+.card .body{padding:14px 14px 8px;flex:1}
+.card h3{font-size:23px;line-height:1.1}
+.card .std{font-family:var(--font-mono);font-size:13px;color:var(--accent);margin:4px 0 10px}
+.card ul{margin:0;padding-left:18px;color:var(--muted);font-size:14.5px}
+.card ul li{margin:2px 0}
+.card .foot{display:grid;grid-template-columns:auto 1fr auto;align-items:center;border-top:1px solid var(--ink)}
+.card .foot > div{padding:10px 12px}
+.card .price{font-family:var(--font-display);font-size:28px;font-weight:700;font-variant-numeric:tabular-nums;border-right:1px solid var(--ink)}
+.card .price .usd{display:block;font-family:var(--font-mono);font-size:12px;font-weight:400;color:var(--muted)}
+.card .price small{font-family:var(--font-mono);font-size:12px;font-weight:400;color:var(--muted);margin-left:2px}
+.rarity{display:flex;gap:3px;align-items:center}
+.rarity i{width:9px;height:9px;border:1px solid var(--ink);display:block}
+.rarity i.on{background:var(--ink)}
+.rarity span{margin-left:6px}
+.card.soon{border-style:dashed}
+.card.soon .price{color:var(--muted)}
+.buy{font-size:14px;padding:8px 14px}
+
+/* bundles */
+.bundles{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.bundle{background:var(--sheet);border:1.5px solid var(--ink);padding:18px;display:flex;flex-direction:column;gap:8px}
+.bundle.best{border-color:var(--accent);box-shadow:6px 6px 0 var(--accent-soft)}
+.bundle h3{font-size:24px}
+.bundle .was{font-family:var(--font-mono);color:var(--muted);text-decoration:line-through;font-size:14px}
+.bundle .now{font-family:var(--font-display);font-size:38px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1}
+.bundle p{margin:0;color:var(--muted);font-size:15px;flex:1}
+
+/* steps */
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:0;counter-reset:s;border:1px solid var(--rule);background:var(--sheet)}
+.steps div{padding:18px;border-right:1px solid var(--rule)}
+.steps div:last-child{border-right:0}
+.steps div::before{counter-increment:s;content:"0" counter(s);font-family:var(--font-mono);color:var(--accent);display:block;margin-bottom:6px}
+.steps h3{font-size:19px}
+.steps p{margin:4px 0 0;color:var(--muted);font-size:15px}
+
+/* disclaimer */
+.disclaimer{background:var(--sheet);border:1.5px solid var(--warn);padding:22px}
+.disclaimer h2{font-size:28px;color:var(--warn);margin-bottom:8px}
+.disclaimer ol{margin:0;padding-left:20px;max-width:80ch}
+.disclaimer li{margin:6px 0}
+
+/* faq */
+details{background:var(--sheet);border:1px solid var(--rule);border-bottom:0;padding:14px 16px}
+details:last-of-type{border-bottom:1px solid var(--rule)}
+summary{cursor:pointer;font-weight:600}
+details p{margin:8px 0 0;color:var(--muted);max-width:75ch}
+
+.contact{display:grid;grid-template-columns:1.2fr 1fr;gap:24px;align-items:start}
+.contact .box{background:var(--sheet);border:1.5px solid var(--ink);padding:18px}
+.contact dl{display:grid;grid-template-columns:auto 1fr;gap:6px 16px;margin:0}
+.contact dt{font-family:var(--font-mono);font-size:13px;color:var(--muted)}
+.contact dd{margin:0;word-break:break-word}
+
+footer{border-top:1.5px solid var(--ink);padding:22px 0 40px;color:var(--muted);font-size:14px}
+footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+
+/* modal */
+.modal{position:fixed;inset:0;background:rgba(10,14,16,.55);display:none;align-items:center;justify-content:center;padding:16px;z-index:10}
+.modal.open{display:flex}
+.dialog{background:var(--sheet);color:var(--ink);border:1.5px solid var(--ink);max-width:560px;width:100%;max-height:90vh;overflow:auto}
+.dialog .dh{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--ink);padding:10px 14px}
+.dialog .dh button{background:none;border:0;font-size:22px;cursor:pointer;color:var(--ink);line-height:1}
+.dialog .db{padding:16px}
+.dialog .db h3{font-size:24px;margin-bottom:4px}
+.dialog .db p{margin:6px 0;color:var(--muted);font-size:15px}
+.dialog .agree{display:flex;gap:10px;align-items:flex-start;margin:14px 0;font-size:15px}
+.dialog .agree input{margin-top:4px;width:18px;height:18px;accent-color:var(--accent)}
+.dialog .df{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;border-top:1px solid var(--rule);padding:12px 16px}
+.btn[aria-disabled="true"]{opacity:.4;pointer-events:none}
+.note{font-family:var(--font-mono);font-size:13px;color:var(--warn)}
+
+@media (max-width:860px){
+  .hero{grid-template-columns:1fr;gap:28px;padding-top:32px}
+  .features{grid-template-columns:1fr 1fr}
+  .features div:nth-child(3n){border-right:1px solid var(--rule)}
+  .features div:nth-child(2n){border-right:0}
+  .bundles{grid-template-columns:1fr}
+  .steps{grid-template-columns:1fr 1fr}
+  .steps div:nth-child(2){border-right:0}
+  .steps div:nth-child(-n+2){border-bottom:1px solid var(--rule)}
+  .contact{grid-template-columns:1fr}
+}
+@media (max-width:520px){
+  .features{grid-template-columns:1fr}
+  .features div{border-right:0!important}
+  .steps{grid-template-columns:1fr}
+  .steps div{border-right:0;border-bottom:1px solid var(--rule)}
+  .readout b{font-size:15px}
+  .sec-head h2{font-size:28px}
+}
+@media (prefers-reduced-motion:no-preference){
+  #pressure,#column,#colLoad{transition:all .15s ease-out}
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#top" aria-label="Pacific Design Sheets home">
+      <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><rect x="1" y="1" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2"/><rect x="11" y="4" width="8" height="12" fill="currentColor"/><rect x="4" y="16" width="22" height="5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M4 23 L26 23 L26 27 L4 25 Z" fill="var(--accent)"/></svg>
+      Pacific Design Sheets
+    </a>
+    <nav class="top" aria-label="Main">
+      <a href="#catalogue">Catalogue</a>
+      <a href="#bundles">Bundles</a>
+      <a href="#disclaimer">Disclaimer</a>
+      <a href="#faq">FAQ</a>
+      <a href="#contact">Contact</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+  <div class="wrap">
+    <div class="hero">
+      <div>
+        <div class="label">Live Excel design sheets · AS/NZS 1170 · AS 3600 · AS 4100</div>
+        <h1 style="margin-top:10px">Change one input. <em>Every check, chart and drawing</em> updates.</h1>
+        <p class="lead">Wind loads, beams, columns and six footing types, built in plain Excel with clause references on every line, PASS/FAIL checks, and section drawings that redraw as you design. Buy once and keep the file. No subscription.</p>
+        <div class="cta">
+          <a class="btn" href="#catalogue">Browse the 11 sheets</a>
+          <a class="btn ghost" href="#bundles">Full set FJD 190</a>
+        </div>
+        <div class="stats">
+          <div><b>11</b><span class="label">Design sheets</span></div>
+          <div><b>6</b><span class="label">Footing types</span></div>
+          <div><b>FJD 20</b><span class="label">From, one-off</span></div>
+        </div>
+      </div>
+
+      <figure class="demo" style="margin:0" aria-label="Interactive eccentric footing demo">
+        <div class="demo-head">
+          <span class="label">Preview · Eccentric_Footing.xlsx</span>
+          <span id="contactChip" class="chip ok">Full contact</span>
+        </div>
+        <svg viewBox="0 0 520 290" role="img" aria-labelledby="demoTitle">
+          <title id="demoTitle">Footing section with soil pressure diagram that changes with load eccentricity</title>
+          <defs>
+            <pattern id="hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="8" stroke="var(--muted)" stroke-width="1"/></pattern>
+            <marker id="arr" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 Z" fill="var(--accent)"/></marker>
+          </defs>
+          <line x1="20" y1="96" x2="500" y2="96" stroke="var(--muted)" stroke-dasharray="6 4"/>
+          <text x="22" y="90" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--muted)">GL</text>
+          <!-- kern -->
+          <line x1="193.3" y1="104" x2="193.3" y2="160" stroke="var(--warn)" stroke-dasharray="3 3"/>
+          <line x1="326.7" y1="104" x2="326.7" y2="160" stroke="var(--warn)" stroke-dasharray="3 3"/>
+          <text x="260" y="174" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="var(--warn)">middle third (kern)</text>
+          <!-- footing -->
+          <rect x="60" y="112" width="400" height="38" fill="url(#hatch)" stroke="var(--ink)" stroke-width="1.5"/>
+          <!-- column -->
+          <rect id="column" x="228" y="28" width="64" height="84" fill="var(--sheet)" stroke="var(--ink)" stroke-width="1.5"/>
+          <line id="colLoad" x1="260" y1="2" x2="260" y2="24" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#arr)"/>
+          <text id="pLabel" x="272" y="14" font-family="IBM Plex Mono, monospace" font-size="12" fill="var(--accent)">P = 800 kN</text>
+          <!-- dimension L -->
+          <line x1="60" y1="270" x2="460" y2="270" stroke="var(--ink)"/>
+          <line x1="60" y1="264" x2="60" y2="276" stroke="var(--ink)"/>
+          <line x1="460" y1="264" x2="460" y2="276" stroke="var(--ink)"/>
+          <text x="260" y="284" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--ink)">L = 2.50 m  (B = 2.00 m)</text>
+          <!-- pressure -->
+          <line x1="60" y1="152" x2="460" y2="152" stroke="var(--ink)"/>
+          <polygon id="pressure" points="60,152 460,152 460,200 60,200" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5"/>
+          <text id="qMinLabel" x="64" y="250" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--ink)">q min</text>
+          <text id="qMaxLabel" x="456" y="250" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--ink)">q max</text>
+        </svg>
+        <div class="demo-controls">
+          <label for="ecc"><span>Load eccentricity e</span><span class="mono" id="eVal">0.15 m</span></label>
+          <input id="ecc" type="range" min="0" max="0.6" step="0.01" value="0.15">
+        </div>
+        <div class="readout">
+          <div><span class="label">q max</span><b id="qmax">-</b></div>
+          <div><span class="label">q min</span><b id="qmin">-</b></div>
+          <div><span class="label">e vs L/6</span><b id="ratio">-</b></div>
+        </div>
+      </figure>
+    </div>
+  </div>
+
+  <section>
+    <div class="wrap">
+      <div class="sec-head">
+        <h2>What every sheet includes</h2>
+        <p>The same layout in every workbook, so once you know one you know them all.</p>
+      </div>
+      <div class="features">
+        <div><h3><span class="swatch" style="background:#fde68a"></span>Yellow inputs</h3><p>Only the yellow cells are editable. Formula cells are locked so nothing gets overwritten by accident.</p></div>
+        <div><h3>Clause on every line</h3><p>Each calculation step shows the AS/NZS clause it comes from, so you can follow it against the standard.</p></div>
+        <div><h3>PASS / FAIL summary</h3><p>Utilisation ratios with green and red flags, and the governing load combination picked automatically.</p></div>
+        <div><h3>Live charts</h3><p>BMD, SFD, N–M interaction, soil pressure and wind profiles are native Excel charts that redraw instantly.</p></div>
+        <div><h3>Drawings that move</h3><p>Sections and plans showing bars, ties and dimensions update when you change sizes or reinforcement.</p></div>
+        <div><h3>Worked verification</h3><p>A built-in worked example checked against an independent hand calculation, so you can see the sheet agrees.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="catalogue">
+    <div class="wrap">
+      <div class="sec-head">
+        <h2>Catalogue</h2>
+        <p>Prices in Fiji dollars, with the approximate US dollar price for overseas buyers. The rarer the design check is to find online, the more it costs. The squares show how hard it is to find elsewhere.</p>
+      </div>
+      <div class="filters" role="group" aria-label="Filter by category">
+        <button type="button" data-filter="all" aria-pressed="true">All</button>
+        <button type="button" data-filter="loads" aria-pressed="false">Loads</button>
+        <button type="button" data-filter="concrete" aria-pressed="false">Concrete</button>
+        <button type="button" data-filter="steel" aria-pressed="false">Steel</button>
+        <button type="button" data-filter="footings" aria-pressed="false">Footings</button>
+        <button type="button" data-filter="timber" aria-pressed="false">Timber · coming soon</button>
+      </div>
+      <div class="grid" id="grid"></div>
+    </div>
+  </section>
+
+  <section id="bundles">
+    <div class="wrap">
+      <div class="sec-head">
+        <h2>Bundles</h2>
+        <p>Online AS/NZS calculator subscriptions start at around US$79 a month. Buy the full set once for less than that.</p>
+      </div>
+      <div class="bundles" id="bundleGrid"></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <div class="sec-head"><h2>How buying works</h2></div>
+      <div class="steps">
+        <div><h3>Choose a sheet</h3><p>Pick a single sheet or a bundle, accept the disclaimer and tap Email my order.</p></div>
+        <div><h3>Get payment details</h3><p>We reply, usually within a day, with M-PAiSA, bank transfer or Wise details.</p></div>
+        <div><h3>Pay</h3><p>Fiji buyers pay by M-PAiSA. Overseas buyers can use Wise or a bank transfer.</p></div>
+        <div><h3>Receive your file</h3><p>Once payment arrives, the .xlsx file is emailed to you, licensed in your name.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="disclaimer">
+    <div class="wrap">
+      <div class="disclaimer">
+        <h2>Disclaimer and licence</h2>
+        <ol>
+          <li><strong>For education and preliminary design only.</strong> These spreadsheets are tools to help you learn and check calculations. They are not a substitute for engineering judgement.</li>
+          <li><strong>You are responsible for your results.</strong> Every result must be independently checked by a suitably qualified and registered engineer before it is used for construction, approval or any real structure.</li>
+          <li><strong>No warranty.</strong> The sheets are provided "as is". Pacific Design Sheets accepts no liability for any loss, damage or injury arising from their use.</li>
+          <li><strong>Check the code edition.</strong> Sheets follow AS/NZS 1170.0, 1170.1, 1170.2:2021, AS 3600:2018 and AS 4100:2020. Confirm these are the editions required for your project and jurisdiction, including the Fiji National Building Code where it applies.</li>
+          <li><strong>Standards are not included.</strong> You need your own copy of the relevant Australian/New Zealand Standards. Wind speed and site data must come from the applicable code or authority.</li>
+          <li><strong>Single-user licence.</strong> Each purchase licenses one named person. Sharing, reselling or uploading the files is not permitted. Each file carries the buyer's name.</li>
+          <li><strong>Students:</strong> do not submit these sheets as your own work for assessment. Use them to check your hand calculations.</li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <section id="faq">
+    <div class="wrap">
+      <div class="sec-head"><h2>Questions</h2></div>
+      <details><summary>Which Excel version do I need?</summary><p>Microsoft Excel 2016 or later, or Microsoft 365, on Windows or Mac. The sheets use no macros, so there are no security warnings. Excel on phones opens them, but charts and drawings work best on a computer.</p></details>
+      <details><summary>Can I see the formulas?</summary><p>Yes. Every result is a visible Excel formula with its clause reference. Cells are locked against accidental edits, not hidden.</p></details>
+      <details><summary>What units are used?</summary><p>SI units throughout: kN, kPa, m, mm and MPa, with the unit shown beside every value.</p></details>
+      <details><summary>Do I get updates?</summary><p>Yes. Fixes and improvements to a sheet you bought are emailed to you free of charge.</p></details>
+      <details><summary>What if a file has a problem?</summary><p>If a file doesn't open or you find an error, contact us. We will fix it and send you a corrected version, or refund you.</p></details>
+      <details><summary>How do I pay?</summary><p>Email your order and we'll reply with payment details. In Fiji, pay in FJD by M-PAiSA. From overseas, send by Wise (to a Fiji account or M-PAiSA) or by international bank transfer. Card checkout is coming soon.</p></details>
+      <details><summary>When are the timber sheets coming?</summary><p>Timber design to AS 1720.1 is the next range. Contact us to be told when it's released.</p></details>
+    </div>
+  </section>
+
+  <section id="contact">
+    <div class="wrap">
+      <div class="sec-head"><h2>Contact</h2></div>
+      <div class="contact">
+        <div>
+          <p style="margin-top:0;max-width:56ch">Questions about a sheet, local payment, a custom calculation, or the timber range? Get in touch and we'll usually reply within a day.</p>
+        </div>
+        <div class="box">
+          <dl>
+            <dt>Email</dt><dd id="cEmail"></dd>
+            <dt>Based in</dt><dd>Suva, Fiji</dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>© <span id="yr"></span> Pacific Design Sheets. Educational design tools. Not engineering certification.</span>
+    <a href="#disclaimer">Disclaimer and licence</a>
+  </div>
+</footer>
+
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+  <div class="dialog">
+    <div class="dh"><span class="label">Before you order</span><button type="button" id="mClose" aria-label="Close">×</button></div>
+    <div class="db">
+      <h3 id="mTitle">Sheet</h3>
+      <div class="std mono" id="mPrice" style="color:var(--accent)"></div>
+      <p>These sheets are for education and preliminary design. Results must be checked by a qualified engineer before any real use. They are provided without warranty, under a single-user licence.</p>
+      <label class="agree" for="mAgree"><input type="checkbox" id="mAgree"><span>I have read the <a href="#disclaimer" id="mDiscLink">disclaimer and licence</a> and accept them.</span></label>
+      <p class="note" id="mNote" hidden></p>
+      <div id="mOrder" hidden style="border:1px solid var(--rule);padding:12px;margin-top:6px">
+        <p style="margin:0 0 6px">We'll reply with payment details (M-PAiSA, bank transfer or Wise). Your file is emailed once payment arrives, licensed in your name.</p>
+        <p style="margin:0">If the button doesn't open your email app, send an email to <strong id="mEmail" class="mono"></strong> with the subject <span id="mSubject" class="mono"></span>.</p>
+        <button type="button" class="btn ghost buy" id="mCopy" style="margin-top:10px">Copy order details</button>
+      </div>
+    </div>
+    <div class="df">
+      <button type="button" class="btn ghost" id="mCancel">Cancel</button>
+      <a class="btn" id="mGo" href="#" aria-disabled="true" target="_blank" rel="noopener">Continue to checkout</a>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   EDIT HERE: your contact details and checkout links.
+   Paste each Lemon Squeezy (or other) checkout URL between the quotes.
+   Leave a link empty ("") and the button will ask buyers to contact you.
+   ========================================================= */
+const CONFIG = {
+  email: "pacificdesignsheets@gmail.com",
+  checkout: {
+    wind: "", rcbeam: "", steelbeam: "", rccol: "", steelcol: "",
+    pad: "", strip: "", ecc: "", comb: "", strap: "", pile: "",
+    bundle_footings: "", bundle_members: "", bundle_all: ""
+  }
+};
+
+const PRODUCTS = [
+  {id:"wind", no:"PDS-01", cat:"loads", name:"Wind Loads", std:"AS/NZS 1170.2:2021", price:9, fjd:20, rarity:1,
+   items:["Site and design wind speed with all multipliers","Cp,e and Cp,i for walls and roof zones","Wind profile and face pressure charts","Elevation and plan with pressure zones"]},
+  {id:"rcbeam", no:"PDS-02", cat:"concrete", name:"RC Beam", std:"AS 3600:2018", price:12, fjd:25, rarity:2,
+   items:["Simply supported, continuous or cantilever","Flexure, shear, deflection and crack control","Live BMD and SFD","Section drawing with bars and stirrups"]},
+  {id:"steelbeam", no:"PDS-03", cat:"steel", name:"Steel Beam", std:"AS 4100:2020", price:14, fjd:30, rarity:2,
+   items:["UB, UC and PFC section dropdown","Section and member moment capacity","Shear and deflection checks","BMD, SFD and deflected shape"]},
+  {id:"rccol", no:"PDS-04", cat:"concrete", name:"RC Column", std:"AS 3600:2018", price:19, fjd:40, rarity:3,
+   items:["Short or slender classification","Moment magnification and minimum eccentricity","N–M interaction diagram with design point","Section drawing with bars and ties"]},
+  {id:"steelcol", no:"PDS-05", cat:"steel", name:"Steel Column", std:"AS 4100:2020", price:19, fjd:40, rarity:3,
+   items:["Section and member compression capacity","Slenderness and combined actions","Capacity vs effective length chart"]},
+  {id:"pad", no:"PDS-06", cat:"footings", name:"Pad Footing", std:"AS 3600:2018", price:12, fjd:25, rarity:2,
+   items:["Isolated pad with concentric load","Bearing, one-way and punching shear","Flexure, bar spacing, development length","Plan and section drawing"]},
+  {id:"strip", no:"PDS-07", cat:"footings", name:"Strip Footing", std:"AS 3600:2018", price:10, fjd:22, rarity:1,
+   items:["Strip and wall footings","Bearing, shear and flexure","Soil pressure diagram","Section drawing"]},
+  {id:"ecc", no:"PDS-08", cat:"footings", name:"Eccentric Footing", std:"AS 3600:2018", price:24, fjd:50, rarity:4,
+   items:["Moment and/or offset column","No-tension and kern (L/6) check","Partial-contact pressure when e > L/6","Overturning and sliding checks"]},
+  {id:"comb", no:"PDS-09", cat:"footings", name:"Combined Footing", std:"AS 3600:2018", price:24, fjd:50, rarity:4,
+   items:["Rectangular and trapezoidal options","Sizing for uniform soil pressure","Longitudinal BMD and SFD","Plan and section drawing"]},
+  {id:"strap", no:"PDS-10", cat:"footings", name:"Strap Footing", std:"AS 3600:2018", price:22, fjd:45, rarity:4,
+   items:["Boundary column with strap beam","Footing and strap beam design","Pressure, BMD and SFD","Plan and section drawing"]},
+  {id:"pile", no:"PDS-11", cat:"footings", name:"Pile Cap", std:"AS 3600:2018", price:24, fjd:50, rarity:4,
+   items:["2-pile and 4-pile options","Strut-and-tie method","Pile load distribution","Plan and section drawing"]},
+  {id:"t1", no:"PDS-T1", cat:"timber", name:"Timber Beam & Joist", std:"AS 1720.1", soon:true, rarity:3,
+   items:["Bending, shear and bearing","Modification factors k1–k12","Deflection with creep"]},
+  {id:"t2", no:"PDS-T2", cat:"timber", name:"Timber Column & Stud", std:"AS 1720.1", soon:true, rarity:3,
+   items:["Compression and slenderness","Combined bending and compression"]},
+  {id:"t3", no:"PDS-T3", cat:"timber", name:"Timber Connections", std:"AS 1720.1", soon:true, rarity:4,
+   items:["Nailed and bolted joints","Group and load-duration factors"]}
+];
+
+const BUNDLES = [
+  {id:"bundle_members", name:"Beams & Columns", price:45, fjd:95, ids:["rcbeam","steelbeam","rccol","steelcol"],
+   text:"RC and steel beams and columns. Four sheets for the price of about three."},
+  {id:"bundle_footings", name:"All Footings", price:59, fjd:125, ids:["pad","strip","ecc","comb","strap","pile"],
+   text:"Pad, strip, eccentric, combined, strap and pile cap. The hardest-to-find set at half price."},
+  {id:"bundle_all", name:"Complete Set", price:89, fjd:190, best:true, ids:["wind","rcbeam","steelbeam","rccol","steelcol","pad","strip","ecc","comb","strap","pile"],
+   text:"All 11 sheets, plus a 30% discount on the timber range when it launches."}
+];
+
+const RARITY_TXT = ["","Common","Less common","Hard to find","Very hard to find"];
+
+function rarityHTML(n){
+  let s='<span class="rarity" title="'+RARITY_TXT[n]+'">';
+  for(let i=1;i<=4;i++) s+='<i class="'+(i<=n?'on':'')+'"></i>';
+  return s+'<span class="label">'+RARITY_TXT[n]+'</span></span>';
+}
+
+function renderGrid(filter){
+  const g=document.getElementById('grid');
+  g.innerHTML=PRODUCTS.filter(p=>filter==='all'||p.cat===filter).map(p=>`
+    <article class="card${p.soon?' soon':''}">
+      <div class="tb"><div class="label">${p.cat}</div><div class="no label">${p.no}</div></div>
+      <div class="body">
+        <h3>${p.name}</h3>
+        <div class="std">${p.std}</div>
+        <ul>${p.items.map(i=>'<li>'+i+'</li>').join('')}</ul>
+      </div>
+      <div class="foot">
+        <div class="price">${p.soon?'TBA':'<small style="margin:0 3px 0 0">FJD</small>'+p.fjd+'<span class="usd">≈ US$'+p.price+'</span>'}</div>
+        <div>${rarityHTML(p.rarity)}</div>
+        <div>${p.soon
+          ? '<a class="btn ghost buy" href="#contact">Notify me</a>'
+          : '<button type="button" class="btn buy" data-buy="'+p.id+'">Buy</button>'}</div>
+      </div>
+    </article>`).join('');
+}
+
+function renderBundles(){
+  const byId=Object.fromEntries(PRODUCTS.map(p=>[p.id,p]));
+  document.getElementById('bundleGrid').innerHTML=BUNDLES.map(b=>{
+    const total=b.ids.reduce((s,i)=>s+byId[i].fjd,0);
+    return `<div class="bundle${b.best?' best':''}">
+      <div class="label">${b.ids.length} sheets${b.best?' · Best value':''}</div>
+      <h3>${b.name}</h3>
+      <div><span class="was">FJD ${total} separately</span></div>
+      <div class="now"><span class="label" style="margin-right:6px">FJD</span>${b.fjd}</div>
+      <div class="label">≈ US$${b.price}</div>
+      <p>${b.text}</p>
+      <button type="button" class="btn" data-buy="${b.id}">Buy bundle</button>
+    </div>`;
+  }).join('');
+}
+
+/* modal */
+const modal=document.getElementById('modal'), agree=document.getElementById('mAgree'), go=document.getElementById('mGo'), note=document.getElementById('mNote');
+let lastFocus=null;
+function openModal(id){
+  const p=PRODUCTS.find(x=>x.id===id)||BUNDLES.find(x=>x.id===id);
+  document.getElementById('mTitle').textContent=p.name;
+  document.getElementById('mPrice').textContent='FJD '+p.fjd+' (≈ US$'+p.price+')'+(p.std?' · '+p.std:' · bundle');
+  const url=CONFIG.checkout[id];
+  agree.checked=false;
+  const orderBox=document.getElementById('mOrder');
+  if(url){
+    go.href=url; go.textContent='Continue to checkout'; go.setAttribute('target','_blank');
+    note.hidden=true; orderBox.hidden=true;
+  }else{
+    const subject='Order: '+p.name+' (FJD '+p.fjd+' / US$'+p.price+')';
+    const body='Hi,\n\nI would like to buy: '+p.name+' (FJD '+p.fjd+' / US$'+p.price+').\n\nName for the licence: \nCountry: \nPreferred payment (M-PAiSA / bank transfer / Wise): \n\nI have read and accept the disclaimer and licence.\n\nThanks';
+    go.href='mailto:'+CONFIG.email+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);
+    go.removeAttribute('target'); go.textContent='Email my order';
+    note.hidden=true; orderBox.hidden=false;
+    document.getElementById('mEmail').textContent=CONFIG.email;
+    document.getElementById('mSubject').textContent=subject;
+    orderText=CONFIG.email+'\nSubject: '+subject+'\n\n'+body;
+    document.getElementById('mCopy').textContent='Copy order details';
+  }
+  go.setAttribute('aria-disabled','true');
+  lastFocus=document.activeElement;
+  modal.classList.add('open');
+  agree.focus();
+}
+let orderText='';
+document.getElementById('mCopy').addEventListener('click',async e=>{
+  try{await navigator.clipboard.writeText(orderText); e.target.textContent='Copied';}
+  catch(err){e.target.textContent='Copy failed. Please type the email above.';}
+});
+function closeModal(){modal.classList.remove('open'); if(lastFocus) lastFocus.focus();}
+agree.addEventListener('change',()=>go.setAttribute('aria-disabled',agree.checked?'false':'true'));
+go.addEventListener('click',()=>{ if(!go.getAttribute('target')) closeModal(); });
+document.getElementById('mClose').addEventListener('click',closeModal);
+document.getElementById('mCancel').addEventListener('click',closeModal);
+document.getElementById('mDiscLink').addEventListener('click',closeModal);
+modal.addEventListener('click',e=>{if(e.target===modal) closeModal();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&modal.classList.contains('open')) closeModal();});
+document.addEventListener('click',e=>{const b=e.target.closest('[data-buy]'); if(b) openModal(b.dataset.buy);});
+
+/* filters */
+document.querySelectorAll('.filters button').forEach(btn=>btn.addEventListener('click',()=>{
+  document.querySelectorAll('.filters button').forEach(b=>b.setAttribute('aria-pressed','false'));
+  btn.setAttribute('aria-pressed','true');
+  renderGrid(btn.dataset.filter);
+}));
+
+/* eccentric footing demo: P = 800 kN, B = 2.0 m, L = 2.5 m */
+const P=800,B=2.0,L=2.5,X0=60,PX=160,Y0=152,S=0.22;
+function fmt(v){return v.toFixed(0)+' kPa';}
+function updateDemo(){
+  const e=parseFloat(document.getElementById('ecc').value);
+  document.getElementById('eVal').textContent=e.toFixed(2)+' m';
+  const cx=260+e*PX;
+  document.getElementById('column').setAttribute('x',(cx-32).toFixed(1));
+  const ld=document.getElementById('colLoad'); ld.setAttribute('x1',cx); ld.setAttribute('x2',cx);
+  document.getElementById('pLabel').setAttribute('x',(cx+12).toFixed(1));
+  const xr=X0+L*PX, chip=document.getElementById('contactChip');
+  let qmax,qmin,pts,xl=X0;
+  if(e<=L/6+1e-9){
+    qmax=P/(B*L)*(1+6*e/L); qmin=P/(B*L)*(1-6*e/L);
+    pts=`${X0},${Y0} ${xr},${Y0} ${xr},${Y0+qmax*S} ${X0},${Y0+qmin*S}`;
+    chip.textContent='Full contact'; chip.className='chip ok';
+  }else{
+    const a=3*(L/2-e); qmax=2*P/(3*B*(L/2-e)); qmin=0; xl=xr-a*PX;
+    pts=`${xl.toFixed(1)},${Y0} ${xr},${Y0} ${xr},${Y0+qmax*S}`;
+    chip.textContent='Partial contact'; chip.className='chip warn';
+  }
+  document.getElementById('pressure').setAttribute('points',pts);
+  const qminL=document.getElementById('qMinLabel'); qminL.setAttribute('x',(xl+4).toFixed(1)); qminL.textContent=fmt(qmin);
+  document.getElementById('qMaxLabel').textContent=fmt(qmax);
+  document.getElementById('qmax').textContent=fmt(qmax);
+  document.getElementById('qmin').textContent=fmt(qmin);
+  document.getElementById('ratio').textContent=(e/(L/6)).toFixed(2)+' ×';
+}
+document.getElementById('ecc').addEventListener('input',updateDemo);
+
+document.getElementById('cEmail').textContent=CONFIG.email;
+document.getElementById('yr').textContent=new Date().getFullYear();
+renderGrid('all'); renderBundles(); updateDemo();
+</script>
+</body>
+</html>
